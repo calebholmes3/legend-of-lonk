@@ -1,0 +1,81 @@
+html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+canvas { display: block; image-rendering: pixelated; image-rendering: crisp-edges; }
+
+/* the game sits centered in #screen; resize() fits it to whatever room #screen leaves */
+#screen {
+  position: fixed; inset: 8px;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* ---------- touch pad ---------- */
+#pad { display: none; }
+body.touch {
+  touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  --d: min(40vw, 28vh);   /* D-pad size */
+  --b: calc(var(--d) * 0.42); /* A/B button size */
+}
+body.touch #pad { display: block; position: fixed; inset: 0; pointer-events: none; }
+body.touch #pad > * { pointer-events: auto; position: absolute; }
+
+/* portrait: the screen on top, the pad underneath */
+body.touch #screen {
+  inset: env(safe-area-inset-top, 0) 0 auto 0;
+  height: calc(100% - var(--d) - 22vh);
+  align-items: flex-start; padding-top: 3vh; box-sizing: border-box;
+}
+#dpad { width: var(--d); height: var(--d); left: 6vw; bottom: calc(env(safe-area-inset-bottom, 0px) + 8vh); }
+#ab { right: 5vw; bottom: calc(env(safe-area-inset-bottom, 0px) + 8vh + var(--d) * 0.25); display: flex; gap: calc(var(--b) * 0.3); }
+#ab .btn:first-child { transform: translateY(calc(var(--b) * 0.45)); }
+#start { left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 3vh); transform: translateX(-50%); }
+
+/* landscape: the screen in the middle, the D-pad and buttons on either side */
+@media (orientation: landscape) {
+  body.touch { --d: min(19vw, 46vh); }
+  body.touch #screen {
+    inset: 8px calc(var(--d) + 6vw) 8px calc(var(--d) + 6vw);
+    height: auto; align-items: center; padding-top: 0;
+  }
+  #dpad { left: max(3vw, env(safe-area-inset-left, 0px)); bottom: auto; top: calc(50% - var(--d) / 2); }
+  #ab { right: max(2vw, env(safe-area-inset-right, 0px)); bottom: auto; top: calc(50% - var(--b) * 0.7); }
+  /* START tucks under the buttons, clear of the game screen */
+  #start { left: auto; right: calc(max(2vw, env(safe-area-inset-right, 0px)) + var(--b) * 0.6); transform: none;
+           bottom: auto; top: calc(50% + var(--b) * 0.95); }
+}
+
+/* D-pad: a cross of four arms around a hub; the pressed arm darkens */
+.arm, .hub { position: absolute; background: #2a2a2a; }
+.arm.up    { left: 33%; top: 0; width: 34%; height: 34%; border-radius: 6px 6px 0 0; }
+.arm.down  { left: 33%; bottom: 0; width: 34%; height: 34%; border-radius: 0 0 6px 6px; }
+.arm.left  { left: 0; top: 33%; width: 34%; height: 34%; border-radius: 6px 0 0 6px; }
+.arm.right { right: 0; top: 33%; width: 34%; height: 34%; border-radius: 0 6px 6px 0; }
+.hub { left: 33%; top: 33%; width: 34%; height: 34%; }
+.hub::after {
+  content: ''; position: absolute; inset: 22%; border-radius: 50%; background: #1c1c1c;
+}
+.arm::after {
+  content: ''; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  border: calc(var(--d) * 0.045) solid transparent;
+}
+.arm.up::after    { border-bottom-color: #555; margin-top: -10%; }
+.arm.down::after  { border-top-color: #555; margin-top: 10%; }
+.arm.left::after  { border-right-color: #555; margin-left: -10%; }
+.arm.right::after { border-left-color: #555; margin-left: 10%; }
+#dpad[data-dir=up] .up, #dpad[data-dir=down] .down,
+#dpad[data-dir=left] .left, #dpad[data-dir=right] .right { background: #4a4a4a; }
+
+/* A and B: round red buttons, letters in the NES's red underneath */
+.btn {
+  width: var(--b); height: var(--b); border-radius: 50%;
+  background: #c8102e; box-shadow: 0 4px 0 #6e0818;
+  display: flex; align-items: center; justify-content: center;
+}
+.btn span { font: bold calc(var(--b) * 0.38) sans-serif; color: #ffd0d6; }
+.btn.on { transform: translateY(3px) !important; box-shadow: 0 1px 0 #6e0818; background: #a00c24; }
+#ab .btn:first-child.on { transform: translateY(calc(var(--b) * 0.45 + 3px)) !important; }
+
+#start {
+  padding: 8px 18px; border-radius: 16px; background: #3a3a3a;
+  font: bold 12px sans-serif; letter-spacing: 1px; color: #bcbcbc;
+}
+#start.on { background: #555; }
